@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サービスアンケート</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f9f9f9;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    p {
+      text-align: center;
+      font-size: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 1rem;
+      resize: vertical;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .star-rating-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .star-numbers {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 250px; /* ★コンテナと同じ幅に調整 */
+      margin-bottom: 5px;
+    }
+    .star-numbers span {
+      flex: 1;
+      text-align: center;
+      font-size: 1rem;
+      color: #333;
+    }
+    .stars {
+      display: flex;
+      flex-direction: row-reverse;  /* DOM順は逆でも、表示は1,2,3,4,5となる */
+      justify-content: space-between;
+      width: 100%;
+      max-width: 250px;
+    }
+    .stars input {
+      display: none;
+    }
+    .stars label {
+      font-size: 2.5rem;
+      color: #ccc;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+    /* ホバー・チェック時のスタイル */
+    .stars input:checked ~ label,
+    .stars label:hover,
+    .stars label:hover ~ label {
+      color: gold;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      font-size: 1.1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #thanks-message {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+      color: #333;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>サービスアンケート</h1>
+    <p>当店について、評価とご意見をお願いします。</p>
+
+    <div class="star-rating-wrapper">
+      <!-- ★の上に評価数字を表示 -->
+      <div class="star-numbers">
+        <span>1</span>
+        <span>2</span>
+        <span>3</span>
+        <span>4</span>
+        <span>5</span>
+      </div>
+      <div class="stars" id="star-rating">
+        <!-- CSSでrow-reverseするため、DOM上は逆順に記述 -->
+        <input type="radio" name="star" id="star5" value="5">
+        <label for="star5">★</label>
+        <input type="radio" name="star" id="star4" value="4">
+        <label for="star4">★</label>
+        <input type="radio" name="star" id="star3" value="3">
+        <label for="star3">★</label>
+        <input type="radio" name="star" id="star2" value="2">
+        <label for="star2">★</label>
+        <input type="radio" name="star" id="star1" value="1">
+        <label for="star1">★</label>
+      </div>
+    </div>
+
+    <textarea id="comment" placeholder="ご意見・ご感想をお書きください"></textarea>
+    <button onclick="submitSurvey()">送信</button>
+
+    <p id="thanks-message" class="hidden"></p>
+  </div>
+
+  <script>
+    function submitSurvey() {
+      const stars = document.querySelector('input[name="star"]:checked');
+      const comment = document.getElementById("comment").value.trim();
+      const thanks = document.getElementById("thanks-message");
+
+      if (!stars) {
+        alert("評価を選択してください。");
+        return;
+      }
+      if (comment === "") {
+        alert("コメントを入力してください。");
+        return;
+      }
+
+      const rating = parseInt(stars.value);
+
+      // 評価が4または5の場合のみGoogleレビュー投稿確認
+      if (rating === 4 || rating === 5) {
+        if (confirm("このコメントをGoogleレビューに投稿しますか？（任意）")) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(comment).then(() => {
+              alert("コメントがコピーされました。Googleのクチコミ投稿画面で貼り付けてご投稿ください。");
+              window.open("https://search.google.com/local/writereview?placeid=ChIJ7RxtWvTzGGARRL8nQCZuSeI", "_blank");
+            }).catch(() => {
+              alert("コピーに失敗しました。手動で貼り付けてください。");
+              window.open("https://search.google.com/local/writereview?placeid=ChIJ7RxtWvTzGGARRL8nQCZuSeI", "_blank");
+            });
+          } else {
+            alert("コピー機能が使えない環境です。手動でコピーしてください。");
+            window.open("https://search.google.com/local/writereview?placeid=ChIJ7RxtWvTzGGARRL8nQCZuSeI", "_blank");
+          }
+        } else {
+          // キャンセル時のメッセージ表示
+          thanks.textContent = "ご意見ありがとうございました。今後のサービス向上に役立てます。";
+          thanks.classList.remove("hidden");
+        }
+      } else {
+        // 評価が1〜3の場合はそのままメッセージ表示
+        thanks.textContent = "ご意見ありがとうございました。今後のサービス向上に役立てます。";
+        thanks.classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
